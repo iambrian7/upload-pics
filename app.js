@@ -6,9 +6,7 @@ const path = require('path');
 const loki = require('lokijs');
 const fs = require("fs")
 const uploadsdir = './public/uploads'
-// fs.readdirSync(uploadsdir).forEach(file => {
-//   //console.log(file);
-// })
+
 function getFiles (dir, files_){
   files_ = files_ || [];
   var files = fs.readdirSync(dir);
@@ -24,47 +22,6 @@ function getFiles (dir, files_){
   return files_;
 }
 let loadedImages = getFiles(uploadsdir)
-// //console.log("images online now:........")
-// //console.log(loadedImages)
-
-// var db = new loki('loki.json')
-
-// var children;
-// console.time("loadbase")
-// console.time("load")
-// db.loadDatabase({}, function () {
-//   children = db.getCollection('children')
-//   var child1 = children.get(1)
-//   console.timeEnd("load")
-//   //console.log(child1)
-//   //console.log("loadedDatabase children......" + JSON.stringify(child1));
-//   //console.log("loadedDatabase children......" + children.get(1));
-// });
-
-// console.timeEnd("loadbase")
-
-// setTimeout(function(){
-
-//   if (children){
-//   // if (children.get(1)){
-//     //console.log(`data is loaded`)
-//     //console.log(children.get(1))
-    
-//   } else {
-//     //console.log(`data is not loaded`)
-//       children = db.addCollection('children')
-//      children.insert({name:'Sleipnir', legs: 8})
-//      children.insert({name:'Jormungandr', legs: 0})
-//      children.insert({name:'Hel', legs: 2})
-//      db.saveDatabase();
-//    }
-// },3000)
-
-
-
-
-
-
 // Set The Storage Engine
 const storage = multer.diskStorage({
   destination: function (req, file, callback) {
@@ -88,7 +45,6 @@ const upload = multer({
 
 // Check File Type
 function checkFileType(file, cb){
-  //console.log(`checkFileType ${JSON.stringify(file, null, 3)}`)
   // Allowed ext
   const filetypes = /jpeg|jpg|png|gif/;
   // Check ext
@@ -128,17 +84,8 @@ app.post('/upload', (req, res) => {
           msg: 'Error: No File Selected!'
         });
       } else {
-
-        // //console.log(`data is loaded`)
-        // //console.log(children.get(1))
-
         loadedImages = getFiles(uploadsdir)
         res.redirect('/')
-        // res.render('index', {
-        //   msg: 'File Uploaded!',
-        //   images: loadedImages,
-        //   file: `uploads/${req.body.image_name + "." + req.file.filename.split('.')[1]}`
-        // });
       }
     }
   });

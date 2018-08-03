@@ -19,22 +19,13 @@
       padding: 20px;
       border: 1px solid black;
     }
-    /* .loaded-images img,
-    .upload-form img {
-      width: 400px;
-      margin: 0 20px;
-    } */
     .loaded-images{
       display: grid;
-      /* grid-template-columns: repeat(auto-fill, 300px); */
       grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
       grid-auto-rows: 300px;
-      /* grid-auto-flow: dense; */
       grid-gap: 5px;
     }
     .loaded-images img {
-      /* grid-column: 1 / -1;
-      grid-row: 1 / -1; */
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -96,7 +87,8 @@ Remove or comment-out the code block below to see how the browser will fall-back
 @supports (display: grid) {
 	.gallery {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(24rem, 36rem));
+		/* grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr)); */
 		grid-gap: 2rem;
 	}
 
@@ -135,12 +127,9 @@ Remove or comment-out the code block below to see how the browser will fall-back
 </head>
 <body>
   <div class="vue-upload" id="app">
-    <!-- <vue-nav></vue-nav> -->
     <div class="container-fluid">
       <div class="upload-header">
         <button class="waves-effect waves-light btn" id='open-form' @click="uploadOpen = true">Click to upload images</button>
-        <a href="http://localhost:3000/">Standard Version</a>
-        
         <div class="upload-form" v-if="uploadOpen">
           
           <form class="col 12" action="/upload" method="POST" enctype="multipart/form-data">
@@ -181,47 +170,10 @@ Remove or comment-out the code block below to see how the browser will fall-back
         </div>
       </div>
     <div class="loaded-images gallery">
-        
-      <!-- <p v-for="(x, i) in images" :key="i">
-        <img :src="x" alt="">
-      </p> -->
       <div class="gallery-item" v-for="(x, i) in images" :key="i">
           <img class="gallery-image" :src="x" alt="" @click="openOverlay(x)">
         </div>
    </div>
- 
-    <!-- <div class="container">
-        <h1>File Upload {{ images.length}}</h1>
-        
-        <div class="upload-form">
-    
-          <form action="/upload" method="POST" enctype="multipart/form-data">
-            <div class="image-name">
-              <span>Enter a name for the file:</span>
-              <input type="text" placeholder="image name..." name='image_name'>
-            </div>
-            <div class="file-field input-field">
-              <div class="btn grey">
-                <span>File</span>
-                <input name="myImage" type="file">
-              </div>
-              <div class="file-path-wrapper">
-                <input class="file-path validate" type="text">
-              </div>
-            </div>
-            <img class="img-preview" src="" alt="">
-            <button type="submit" class="btn">Submit</button>
-          </form>
-        </div>
-        <%= typeof msg != 'undefined' ? msg : '' %>
-        <br>
-        <div class="loaded-images">
-         <p v-for="(x, i) in images" :key="i">
-           <img :src="x.replace('./public', '')" alt="">
-         </p>  
-      </div>
-      </div> -->
-
     <!-- end app -->
   </div>
 
@@ -234,7 +186,6 @@ var myimages = <%- JSON.stringify(images) %>
 const router = new VueRouter({
   routes: [
     { path: '/', component: httpVueLoader('./components/my-component.vue') },
-    // { path: '/meetings', component: httpVueLoader('./components/meetings.vue') },
   ]
 })
 
@@ -258,32 +209,19 @@ data: {
   overlayImage: ''
 },
 methods: {
-  // imageIsLoaded: function(e) {
-  //  console.log(e)
-  //  this.previewLength = `image size: ${(previewLength/(1024 * 1024)).toFixed(2)} M`
-  //  if (previewLength > previewLimit){
-  //    alert(`limit exceeded ${previewLength}`)
-  //  }
-  // // preview.src = ''
-  //   }
   openOverlay: function(src){
     this.overlayImage = src;
-     // overlay.classList.add('open');
      this.isOpen = true;
   },
  newFile: function(e){
    var files = e.target.files
   if (files && files[0]) {
-           // var img = document.querySelector('img');  // $('img')[0]
-          //  getOrientation(files[0], function(orientation) {
-          //   alert(orientation);
-          // });
-            var src = URL.createObjectURL(files[0]); // set src to file url
-            console.log(`preuploading : ${src}`)
-            this.previewLength = files[0].size
-            this.previewSrc = src // set src to file url
-           // this.previewSrc.onload = imageIsLoaded; // optional onload event listener
-          }
+      var src = URL.createObjectURL(files[0]); // set src to file url
+      console.log(`preuploading : ${src}`)
+      this.previewLength = files[0].size
+      this.previewSrc = src // set src to file url
+      // this.previewSrc.onload = imageIsLoaded; // optional onload event listener
+    }
  }
 },
 computed: {
@@ -306,14 +244,6 @@ dayname: function(value){
 },
 mounted(){
   console.log("mounted........")
-  // this.startTimer();
-  // var img = document.getElementsByTagName("img")[6];
-
-  //   img.onload=function(){
-  //     console.log("Width",img.naturalWidth);
-  //     console.log("Height",img.naturalHeight);
-  //     img.alt = `${img.naturalWidth}:${img.naturalHeight}`
-  //   }
 }
   })
 </script>
