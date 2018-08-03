@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Vue Upload</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+  <style>
+    body {
+      box-sizing: border-box;
+      font-size: 14px;
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    h1,h2{ margin: 0 auto;}
+    .upload-form{
+      padding: 20px;
+      border: 1px solid black;
+    }
+    /* .loaded-images img,
+    .upload-form img {
+      width: 400px;
+      margin: 0 20px;
+    } */
+    .loaded-images{
+      display: grid;
+      /* grid-template-columns: repeat(auto-fill, 300px); */
+      grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
+      grid-auto-rows: 300px;
+      /* grid-auto-flow: dense; */
+      grid-gap: 5px;
+    }
+    .loaded-images img {
+      /* grid-column: 1 / -1;
+      grid-row: 1 / -1; */
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .img-preview{
+      width: 200px;
+      object-fit: cover;
+    }
+    .image-name input{
+      font-size: 1.8em !important;
+      font-weight: 800;
+    }
+    .upload-header{
+      background: aquamarine;
+      padding: 20px;
+      margin: 10px;
+      border: 1px solid black;
+    }
+    .hide {
+      display: none;
+    }
+
+    .gallery {
+	display: flex;
+	flex-wrap: wrap;
+	/* Compensate for excess margin on outer gallery flex items */
+	margin: -1rem -1rem;
+}
+
+.gallery-item {
+	/* Minimum width of 24rem and grow to fit available space */
+	flex: 1 0 24rem;
+	/* Margin value should be half of grid-gap value as margins on flex items don't collapse */
+	margin: 1rem;
+	box-shadow: 0.3rem 0.4rem 0.4rem rgba(0, 0, 0, 0.4);
+	overflow: hidden;
+}
+
+.gallery-image {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: transform 400ms ease-out;
+}
+
+.gallery-image:hover {
+	transform: scale(1.15);
+}
+
+/*
+
+The following rule will only run if your browser supports CSS grid.
+
+Remove or comment-out the code block below to see how the browser will fall-back to flexbox styling. 
+
+*/
+
+@supports (display: grid) {
+	.gallery {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
+		grid-gap: 2rem;
+	}
+
+	.gallery,
+	.gallery-item {
+		margin: 0;
+	}
+}
+.overlay {
+      position: fixed;
+      background: rgba(0, 0, 0, 0.7);
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: none;
+      z-index: 2;
+    }
+
+    .overlay.open {
+      display: grid;
+      align-items: center;
+      justify-items: center;
+    }
+
+    .overlay-inner {
+      background: white;
+      width: 700px;
+      padding: 20px;
+    }
+
+    .overlay img {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="vue-upload" id="app">
+    <!-- <vue-nav></vue-nav> -->
+    <div class="container-fluid">
+      <div class="upload-header">
+        <button class="waves-effect waves-light btn" id='open-form' @click="uploadOpen = true">Click to upload images</button>
+        <a href="http://localhost:3000/">Standard Version</a>
+        
+        <div class="upload-form" v-if="uploadOpen">
+          
+          <form class="col 12" action="/upload" method="POST" enctype="multipart/form-data">
+            <div class="row">
+                <div class="image-name input-field col s6">
+                    <label>Enter a name for the file:</label>
+                    <input type="text" placeholder="image name..." name='image_name'>
+                  </div>
+                <div class="input-field col s6">
+                  <input id="last_name" type="text" class="validate">
+                  <label for="last_name">Last Name</label>
+                </div>
+              </div>
+           
+            <div class="file-field input-field">
+              <div class="btn grey">
+                <span>Click to choose image file</span>
+                <input name="myImage" type="file" @change="newFile">
+              </div>
+              <div class="file-path-wrapper">
+                <input class="file-path validate" type="text">
+              </div>
+            </div>
+            <img class="img-preview" :src="previewSrc" alt="">
+            <span class='img-size'>Size: {{ previewLength}}</span>
+            <button type="submit" class="btn">Submit</button>
+            <button id="close-button" class="btn" @click.prevent="uploadOpen = false">Close</button>
+          </form>
+          <!-- end upload-header -->
+        </div>
+        <!-- upload-form end -->
+      </div>
+    </div>
+    <div class="overlay" :class="{open: isOpen}">
+        <div class="overlay-inner">
+          <button class="close" @click="isOpen = false">× Close</button>
+          <img :src="overlayImage">
+        </div>
+      </div>
+    <div class="loaded-images gallery">
+        
+      <!-- <p v-for="(x, i) in images" :key="i">
+        <img :src="x" alt="">
+      </p> -->
+      <div class="gallery-item" v-for="(x, i) in images" :key="i">
+          <img class="gallery-image" :src="x" alt="" @click="openOverlay(x)">
+        </div>
+   </div>
+ 
+    <!-- <div class="container">
+        <h1>File Upload {{ images.length}}</h1>
+        
+        <div class="upload-form">
+    
+          <form action="/upload" method="POST" enctype="multipart/form-data">
+            <div class="image-name">
+              <span>Enter a name for the file:</span>
+              <input type="text" placeholder="image name..." name='image_name'>
+            </div>
+            <div class="file-field input-field">
+              <div class="btn grey">
+                <span>File</span>
+                <input name="myImage" type="file">
+              </div>
+              <div class="file-path-wrapper">
+                <input class="file-path validate" type="text">
+              </div>
+            </div>
+            <img class="img-preview" src="" alt="">
+            <button type="submit" class="btn">Submit</button>
+          </form>
+        </div>
+        <%= typeof msg != 'undefined' ? msg : '' %>
+        <br>
+        <div class="loaded-images">
+         <p v-for="(x, i) in images" :key="i">
+           <img :src="x.replace('./public', '')" alt="">
+         </p>  
+      </div>
+      </div> -->
+
+    <!-- end app -->
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.5.13/dist/vue.js"></script>
+  <script src="./js/httpvueloader.js"></script>
+  <!-- <script src="https://unpkg.com/http-vue-loader"></script> -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-router/2.5.3/vue-router.min.js"></script>
+<script>
+var myimages = <%- JSON.stringify(images) %>
+const router = new VueRouter({
+  routes: [
+    { path: '/', component: httpVueLoader('./components/my-component.vue') },
+    // { path: '/meetings', component: httpVueLoader('./components/meetings.vue') },
+  ]
+})
+
+var app = new Vue({
+el: '#app',
+router,
+components: {
+          'my-component': httpVueLoader('./components/my-component.vue'),
+          'vue-nav': httpVueLoader('./components/vueNav.vue'),
+        },
+data: {
+  title: "Website Five",
+  description: "A study of using just the vue-loader",
+  focus: "",
+  today: new Date(),
+  images: myimages,
+  uploadOpen: false,
+  previewSrc: '',
+  previewLength: '',
+  isOpen: false,
+  overlayImage: ''
+},
+methods: {
+  // imageIsLoaded: function(e) {
+  //  console.log(e)
+  //  this.previewLength = `image size: ${(previewLength/(1024 * 1024)).toFixed(2)} M`
+  //  if (previewLength > previewLimit){
+  //    alert(`limit exceeded ${previewLength}`)
+  //  }
+  // // preview.src = ''
+  //   }
+  openOverlay: function(src){
+    this.overlayImage = src;
+     // overlay.classList.add('open');
+     this.isOpen = true;
+  },
+ newFile: function(e){
+   var files = e.target.files
+  if (files && files[0]) {
+           // var img = document.querySelector('img');  // $('img')[0]
+          //  getOrientation(files[0], function(orientation) {
+          //   alert(orientation);
+          // });
+            var src = URL.createObjectURL(files[0]); // set src to file url
+            console.log(`preuploading : ${src}`)
+            this.previewLength = files[0].size
+            this.previewSrc = src // set src to file url
+           // this.previewSrc.onload = imageIsLoaded; // optional onload event listener
+          }
+ }
+},
+computed: {
+    
+},
+filters: {
+  
+monthname: function (value) {
+  if (!value) return ''
+  // value = value.toString()
+  return MONTH_NAMES[value-1 ].substr(0,3)
+},
+dayname: function(value){
+  var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  var valueName = app.$data.today.getDate() - value;
+  var result = new Date(app.$data.today)
+  result.setDate(result.getDate() + valueName)
+  return days[result.getDay()].substr(0,1)
+}
+},
+mounted(){
+  console.log("mounted........")
+  // this.startTimer();
+  // var img = document.getElementsByTagName("img")[6];
+
+  //   img.onload=function(){
+  //     console.log("Width",img.naturalWidth);
+  //     console.log("Height",img.naturalHeight);
+  //     img.alt = `${img.naturalWidth}:${img.naturalHeight}`
+  //   }
+}
+  })
+</script>
+
+</body>
+</html>
